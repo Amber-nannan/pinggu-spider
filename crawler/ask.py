@@ -62,11 +62,11 @@ class AskCrawler:
                     ask_post_info = cls.get_ask_post_info(id)
                     if ask_post_info is not None:
                         ask_posts.append(ask_post_info.to_dict())
-                with open(file_path, "w") as file:
-                    json.dump(ask_posts, file, indent=4)
+                with open(file_path, "w", encoding="utf-8") as file:
+                    json.dump(ask_posts, file, indent=4, ensure_ascii=False)
             else:
                 logging.info(f"{file_name} already exists.")
             start_id += chunk_size
         
 def main_ask():
-    AskCrawler.crawl_ask(end_id=2)
+    AskCrawler.crawl_ask(start_id=581)
