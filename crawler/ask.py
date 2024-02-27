@@ -2,6 +2,7 @@ from bs4 import BeautifulSoup
 import os
 import json
 import requests
+import logging
 
 class AskPostInfo:
 
@@ -24,8 +25,12 @@ class AskPostInfo:
         }
 
 class AskCrawler:
+
     base_URL = "https://ask.pinggu.org/"
     ask_path = "ask/"
+    if not os.path.exists(ask_path):
+        os.makedirs(ask_path)
+
     @classmethod
     def get_ask_post_info(cls, ask_id:int) -> AskPostInfo:
         request_URL = f"{cls.base_URL}q-{ask_id}.html"
@@ -60,6 +65,8 @@ class AskCrawler:
                 with open(file_path, "w") as file:
                     json.dump(ask_posts, file, indent=4)
             else:
-                pass
+                logging.info(f"{file_name} already exists.")
             start_id += chunk_size
         
+def main_ask():
+    AskCrawler.crawl_ask(end_id=2)
