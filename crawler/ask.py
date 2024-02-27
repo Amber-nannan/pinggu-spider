@@ -43,7 +43,7 @@ class AskCrawler:
                            description=description)
     
     @classmethod
-    def crawl_ask(cls, start_id:int=1, end_id:int=666666, chunk_size:int=1000):
+    def crawl_ask(cls, start_id:int=1, end_id:int=666666, chunk_size:int=20):
         """Retrieve ask post information from id range of [start_id, end_id),
         save on every 1000 questions."""
         while start_id < end_id:
