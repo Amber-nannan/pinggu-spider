@@ -22,7 +22,48 @@ class ThreadInfo:
 		}
 
 class ThreadCrawler:
-    pass
+
+    base_URL = "https://bbs.pinggu.org/"
+    thread_path = "thread/"
+    if not os.path.exists(thread_path):
+        os.makedirs(thread_path)
+
+    @classmethod
+    def get_thread_info(cls, thread_id:int) -> ThreadInfo:
+        request_URL = f"{cls.base_URL}thread-{thread_id}-1-1.html"
+        response = requests.get(request_URL)
+        soup = BeautifulSoup(response.text, 'html.parser')
+        description = soup.find("div", class_="post_content")
+        title = soup.find("h1", class_="ts")
+        if description is None or title is None:
+            return None
+        description = description.text.strip()
+        title = title.text.strip()
+        return ThreadInfo(thread_id=thread_id,
+                          title=title,
+                          description=description)
+    
+    @classmethod
+    def crawl_thread(cls, start_id:int=1, end_id:int=100, chunk_size:int=20):
+        """Retrieve thread information from id range of [start_id, end_id),
+        save on every 1000 threads."""
+        while start_id < end_id:
+            chunk_limit = min(start_id + chunk_size, end_id)
+            file_name = f"thread-from-{start_id}-to-{chunk_limit}.json"
+            file_path = os.path.join(cls.thread_path, file_name)
+
+            if not os.path.exists(file_path):
+                threads = []
+                for thread_id in range(start_id, chunk_limit):
+                    thread_info = cls.get_thread_info(thread_id)
+                    if thread_info is not None:
+                        threads.append(thread_info.to_dict())
+                        logging.info(f"thread_id: {thread_info.thread_id}")
+                with open(file_path, "w", encoding="utf-8") as file:
+                    json.dump(threads, file, indent=4, ensure_ascii=False)
+            else:
+                logging.info(f"{file_name} already exists.")
+            start_id += chunk_size
 
 def main_thread():
-    pass
+    ThreadCrawler.crawl_thread(start_id=1)

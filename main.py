@@ -1,6 +1,7 @@
 import argparse
 import logging
 from crawler.ask import AskCrawler, main_ask
+from crawler.thread import ThreadCrawler, main_thread
 
 logging.basicConfig(
     filename="main.log",
@@ -14,12 +15,12 @@ def get_args():
     #   - bbs: forum threads
     #   - ask: question and answering
     parser.add_argument("target", help="Choose the platform to crawl data from.",
-                        choices=["bbs", "ask"])
+                        choices=["thread", "ask"])
     return parser.parse_args()
 
 args = get_args()
-if args.target == "bbs":
-    print("BBS")
+if args.target == "thread":
+    main_thread()
 elif args.target == "ask":
     main_ask()
 else:
