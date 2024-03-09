@@ -4,7 +4,7 @@ from crawler.ask import AskCrawler, main_ask
 from crawler.thread import ThreadCrawler, main_thread
 
 logging.basicConfig(
-    filename="main.log",
+    # filename="main.log",
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',)
 

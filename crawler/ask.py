@@ -3,6 +3,7 @@ import os
 import json
 import requests
 import logging
+import time
 
 class AskPostInfo:
 
@@ -34,7 +35,16 @@ class AskCrawler:
     @classmethod
     def get_ask_post_info(cls, ask_id:int) -> AskPostInfo:
         request_URL = f"{cls.base_URL}q-{ask_id}.html"
-        response = requests.get(request_URL)
+
+        logging.info(f"Requesting Ask {ask_id}")
+        while True:
+            try:
+                response = requests.get(request_URL)
+                break
+            except Exception as e:
+                logging.error(f"Request Ask {ask_id} failed")
+                time.sleep(1)
+
         soup = BeautifulSoup(response.text, 'html.parser')
         questionbox = soup.find("div", class_="questionbox")
 
@@ -58,15 +68,18 @@ class AskCrawler:
 
             if not os.path.exists(file_path):
                 ask_posts = []
-                for id in range(start_id, chunk_limit):
-                    ask_post_info = cls.get_ask_post_info(id)
+                for ask_id in range(start_id, chunk_limit):
+                    ask_post_info = cls.get_ask_post_info(ask_id)
                     if ask_post_info is not None:
                         ask_posts.append(ask_post_info.to_dict())
+                        logging.info(f"Got ask_id: {ask_id}")
                 with open(file_path, "w", encoding="utf-8") as file:
                     json.dump(ask_posts, file, indent=4, ensure_ascii=False)
+                    logging.info(f"Ask {start_id}-{chunk_limit-1} saved to :{file_path}")
             else:
                 logging.info(f"{file_name} already exists.")
             start_id += chunk_size
         
 def main_ask():
+    logging.info("Starting crawling ask...")
     AskCrawler.crawl_ask(start_id=581)

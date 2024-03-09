@@ -3,6 +3,7 @@ import os
 import json
 import requests
 import logging
+import time
 
 class ThreadInfo:
 
@@ -31,7 +32,16 @@ class ThreadCrawler:
     @classmethod
     def get_thread_info(cls, thread_id:int) -> ThreadInfo:
         request_URL = f"{cls.base_URL}thread-{thread_id}-1-1.html"
-        response = requests.get(request_URL)
+
+        logging.info(f"Requesting Thread {thread_id}")
+        while True:
+            try:
+                response = requests.get(request_URL)
+                break
+            except Exception as e:
+                logging.error(f"Request Thread {thread_id} failed")
+                time.sleep(1)
+
         soup = BeautifulSoup(response.text, 'html.parser')
         description = soup.find("div", class_="post_content")
         title = soup.find("h1", class_="ts")
@@ -44,7 +54,7 @@ class ThreadCrawler:
                           description=description)
     
     @classmethod
-    def crawl_thread(cls, start_id:int=1, end_id:int=100, chunk_size:int=20):
+    def crawl_thread(cls, start_id:int=1, end_id:int=11746818, chunk_size:int=20):
         """Retrieve thread information from id range of [start_id, end_id),
         save on every 1000 threads."""
         while start_id < end_id:
@@ -58,12 +68,14 @@ class ThreadCrawler:
                     thread_info = cls.get_thread_info(thread_id)
                     if thread_info is not None:
                         threads.append(thread_info.to_dict())
-                        logging.info(f"thread_id: {thread_info.thread_id}")
+                        logging.info(f"Got thread_id: {thread_id}")
                 with open(file_path, "w", encoding="utf-8") as file:
                     json.dump(threads, file, indent=4, ensure_ascii=False)
+                    logging.info(f"Thread {start_id}-{chunk_limit-1} saved to :{file_path}")
             else:
                 logging.info(f"{file_name} already exists.")
             start_id += chunk_size
 
 def main_thread():
+    logging.info("Starting crawling thread...")
     ThreadCrawler.crawl_thread(start_id=1)
